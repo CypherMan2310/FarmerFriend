@@ -12,6 +12,9 @@ asking a local agriculture officer.
 
 Requirements: Python 3.12, an NVIDIA GPU with 8 GB (CPU works, slowly), about 25 GB disk.
 
+**Windows:** double-click `start_app.bat`. The first run sets everything up; later runs
+start the app in about 30 seconds and open it in your browser. Or from a terminal:
+
 ```bash
 powershell -ExecutionPolicy Bypass -File run.ps1
 ```

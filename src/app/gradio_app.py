@@ -75,11 +75,21 @@ def build_app(bot: Any) -> gr.Blocks:
 
 
 def main() -> None:
-    """Load models once and launch on the host/port in config.yaml (app section)."""
+    """Load models once and launch on the host/port in config.yaml (app section).
+
+    ``--open`` opens the app in the default browser once it is ready.
+    """
+    import argparse
+
     from src.agent.pipeline import Assistant
 
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--open", action="store_true", help="open the app in the browser when ready")
+    open_browser = ap.parse_args().open
     app_cfg = load_config()["app"]
-    build_app(Assistant()).launch(server_name=app_cfg["host"], server_port=app_cfg["port"])
+    print("Loading models (about 30 seconds)...", flush=True)
+    build_app(Assistant()).launch(server_name=app_cfg["host"], server_port=app_cfg["port"],
+                                  inbrowser=open_browser)
 
 
 if __name__ == "__main__":
