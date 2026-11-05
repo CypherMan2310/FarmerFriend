@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+
+# Secrets
+.env
+*.token
+
+# Large or generated data
+data/raw/*
+!data/raw/.gitkeep
+data/index/
+logs/*
+!logs/.gitkeep
+
+# Editors / OS
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store
