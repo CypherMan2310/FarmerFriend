@@ -70,8 +70,8 @@ class LLM:
         res = self.model(input_ids=ids, attention_mask=mask, use_cache=True)
         past, out = res.past_key_values, []
         for _ in range(n_new):
-            nxt = res.logits[:, -1, :].argmax(-1, keepdim=True)
-            tok_id = int(nxt)
+            tok_id = self._pick(res.logits[0, -1, :], out)
+            nxt = torch.tensor([[tok_id]], device=ids.device)
             if tok_id == self.tok.eos_token_id:
                 break
             out.append(tok_id)
@@ -80,37 +80,66 @@ class LLM:
             past = res.past_key_values
         return out
 
+    @staticmethod
+    def _pick(logits: torch.Tensor, out: list[int], n: int = 3) -> int:
+        """Greedy choice that never repeats an n-gram already generated."""
+        banned = {tuple(out[i:i + n]) for i in range(len(out) - n + 1)}
+        for cand in torch.topk(logits, 10).indices.tolist():
+            if len(out) < n - 1 or tuple(out[-(n - 1):] + [cand]) not in banned:
+                return cand
+        return int(logits.argmax())
+
 
 def _content_words(text: str) -> set[str]:
     return {w for w in _WORD.findall(text.lower()) if w not in _STOP}
 
 
-def ground_answer(answer: str, chunks: list[dict[str, Any]],
-                  min_overlap: float = 0.35) -> list[dict[str, Any]]:
-    """Keep only answer sentences supported by a retrieved chunk.
+def _source_sentences(chunks: list[dict[str, Any]]) -> list[tuple[int, str]]:
+    """(1-based chunk index, sentence) for every sentence of the chunks."""
+    return [(i, s.strip()) for i, c in enumerate(chunks, 1) for s in _SENT.split(c["text"])
+            if len(s.strip()) > 20]
 
-    Each kept sentence gets a citation (its own ``[n]`` if valid, else the chunk with the
-    highest word overlap). A sentence is dropped if its word overlap with the cited chunk is
-    below ``min_overlap`` or if any of its figures is not in that chunk.
+
+def extractive_answer(question: str, chunks: list[dict[str, Any]], k: int = 2,
+                      min_overlap: float = 0.3) -> list[dict[str, Any]]:
+    """Quote the ``k`` source sentences that best cover the question (verbatim, cited).
+
+    Used when no generated sentence passes grounding; keeps answers strictly in-source.
+    """
+    qw = _content_words(question)
+    if not qw:
+        return []
+    scored = sorted(((len(qw & _content_words(s)) / len(qw), -i, s) for i, s in
+                     _source_sentences(chunks[:3]) if len(s) <= 500), reverse=True)
+    out = []
+    for score, neg_i, s in scored:
+        if score < min_overlap or len(out) == k:
+            break
+        if s not in {o["text"] for o in out}:
+            out.append({"text": s, "cite": -neg_i, "extractive": True})
+    return out
+
+
+def ground_answer(answer: str, chunks: list[dict[str, Any]],
+                  min_overlap: float = 0.5) -> list[dict[str, Any]]:
+    """Keep only answer sentences supported by a single source sentence.
+
+    A generated sentence is kept if one sentence of a retrieved chunk contains every figure
+    it states and shares at least ``min_overlap`` of its content words; it is cited to that
+    chunk. Everything else is dropped, so no figure is shown out of its source context.
 
     Returns:
         List of ``{"text", "cite"}`` with ``cite`` a 1-based chunk index.
     """
-    kept = []
-    words = [_content_words(c["text"]) for c in chunks]
-    figs = [set(figures(c["text"])) for c in chunks]
+    src = [(i, _content_words(s), set(figures(s))) for i, s in _source_sentences(chunks)]
+    kept: list[dict[str, Any]] = []
     for sent in (s.strip() for s in _SENT.split(answer)):
         bare = _CITE.sub("", sent).strip()
         cw = _content_words(bare)
-        if not bare or "NO_SOURCE" in bare or not cw:
+        if not bare or "NO_SOURCE" in bare or not cw or not src:
             continue
-        cited = [int(n) for n in _CITE.findall(sent) if 1 <= int(n) <= len(chunks)]
-        overlaps = [len(cw & w) / len(cw) for w in words]
-        best = cited[0] - 1 if cited and overlaps[cited[0] - 1] >= min_overlap else \
-            max(range(len(chunks)), key=overlaps.__getitem__)
-        if overlaps[best] < min_overlap:
-            continue
-        if any(f not in figs[best] for f in figures(bare)):
-            continue  # a figure not present in the cited source is never shown
-        kept.append({"text": bare, "cite": best + 1})
+        figs = set(figures(bare))
+        best = max(src, key=lambda x: (figs <= x[2], len(cw & x[1])))
+        if figs <= best[2] and len(cw & best[1]) / len(cw) >= min_overlap                 and bare not in {k["text"] for k in kept}:
+            kept.append({"text": bare, "cite": best[0]})
     return kept

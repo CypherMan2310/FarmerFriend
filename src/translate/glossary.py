@@ -47,9 +47,16 @@ def augment_query(english: str, native: str, lang: str) -> str:
     return english if not missing else f"{english} ({', '.join(missing)})"
 
 
+_NUM_WORDS = {w: str(i) for i, w in enumerate(
+    "zero one two three four five six seven eight nine ten eleven twelve".split())}
+_NUM_WORD_RE = re.compile(r"\b(" + "|".join(_NUM_WORDS) + r")\b", re.I)
+
+
 def figures(text: str) -> list[str]:
-    """Numbers in text, with Indic digits normalised to ASCII and commas removed."""
-    return [m.replace(",", "") for m in _NUM.findall(text.translate(_INDIC_DIGITS))]
+    """Numbers in text: Indic digits and English number words (zero-twelve) become ASCII
+    digits, commas are removed."""
+    text = _NUM_WORD_RE.sub(lambda m: _NUM_WORDS[m.group(1).lower()], text.translate(_INDIC_DIGITS))
+    return [m.replace(",", "") for m in _NUM.findall(text)]
 
 
 def missing_figures(source: str, translated: str) -> list[str]:

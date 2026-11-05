@@ -33,6 +33,7 @@ dimethoate carbofuran phorate atrazine fipronil thiamethoxam profenofos emamecti
 chlorantraniliprole""".split())
 DOSE = ("how much", "dose", "dosage", "quantity", " ml", "litre", "liter", "mix", "per acre",
         "per hectare", "concentration", "how many grams")
+SCHEME = set("scheme schemes subsidy assistance support government policy loan insurance".split())
 _UNIT = re.compile(r"\d\s*(ml|g|gm|kg|l|litre|liter|%)\b", re.I)
 _W = re.compile(r"[a-z]+")
 
@@ -59,15 +60,19 @@ def route(query_en: str, native: str, lang: str, retrieved: list[dict[str, Any]]
                         "fungicides", "herbicide", "herbicides", "weedicide", "chemical",
                         "chemicals", "spray", "poison"}
         terms = named or pest
-        sourced = any(any(t in c["text"].lower() for t in terms) and _UNIT.search(c["text"])
-                      for c in retrieved)
+        # A dose counts as sourced only if a figure with a unit appears within 120
+        # characters after the pesticide name in a retrieved chunk.
+        sourced = any(_UNIT.search(m.group(0)) for c in retrieved for t in terms
+                      for m in re.finditer(re.escape(t) + r".{0,120}", c["text"].lower()))
         if not sourced:
             return Decision("refuse", f"dose for {sorted(terms)} not stated in any retrieved source")
 
+    # A farming keyword is required: similarity alone let medical questions through to
+    # pesticide-poisoning passages in the corpus.
     in_domain = bool(words & DOMAIN)
-    if best_sim < r["ood_min_sim"] or (not in_domain and best_sim < r["ood_no_keyword_sim"]):
+    if not in_domain or best_sim < r["ood_min_sim"]:
         return Decision("refuse", f"out of domain (keywords={in_domain}, best_sim={best_sim:.2f})")
 
-    if not (words & CROPS) and any(s in q for s in SPECIFIC):
+    if not (words & CROPS) and not (words & SCHEME) and any(s in q for s in SPECIFIC):
         return Decision("clarify", "crop-specific advice requested but no crop named")
     return Decision("answer", f"in domain (best_sim={best_sim:.2f})")

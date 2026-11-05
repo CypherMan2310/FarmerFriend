@@ -52,8 +52,7 @@ retrieval:
 
 router:
   # Calibrated on in-domain vs out-of-domain queries (eval/report.md).
-  ood_min_sim: 0.35          # best dense cosine below this -> refuse as out of domain
-  ood_no_keyword_sim: 0.50   # no farming keyword and best cosine below this -> refuse
+  ood_min_sim: 0.35          # no farming keyword, or best dense cosine below this -> refuse
   answer_min_sim: 0.40       # below this the LLM is not called -> no-source fallback
 
 chunking:

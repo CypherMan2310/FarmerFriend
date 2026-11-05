@@ -6,7 +6,7 @@ import time
 from typing import Any
 
 from src.agent import prompts
-from src.agent.generate import LLM, ground_answer
+from src.agent.generate import LLM, extractive_answer, ground_answer
 from src.agent.query import prepare_query
 from src.agent.router import route
 from src.config import load_config
@@ -64,6 +64,10 @@ class Assistant:
             prompt, used = prompts.build_prompt(pq.english, retrieved, self.llm.count, budget)
             out["raw_llm"] = self.llm.generate(prompt)
             kept = ground_answer(out["raw_llm"], used)
+        out["mode"] = "generated"
+        if not kept and best_sim >= self.cfg["router"]["answer_min_sim"]:
+            kept = extractive_answer(pq.english, used)  # quote sources rather than guess
+            out["mode"] = "extractive"
         cited = {s["cite"] for s in kept}
         out["sources"] = [{**c, "n": i, "cited": i in cited} for i, c in enumerate(used, 1)]
         if not kept:
