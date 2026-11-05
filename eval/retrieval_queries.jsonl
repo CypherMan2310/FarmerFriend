@@ -1,0 +1,15 @@
+{"id": "r01", "lang": "en", "query": "At which growth stages should wheat be irrigated?", "gold_docs": ["icar01", "open12"], "gold_terms": ["irrigat"]}
+{"id": "r02", "lang": "en", "query": "What are the steps for successful rice production?", "gold_docs": ["open05"], "gold_terms": ["rice"]}
+{"id": "r03", "lang": "en", "query": "What financial assistance is available for drip irrigation under Per Drop More Crop?", "gold_docs": ["icar06"], "gold_terms": ["assistance", "subsidy"]}
+{"id": "r04", "lang": "en", "query": "What is the seed rate for direct seeded rice?", "gold_docs": ["icar07", "open08", "open11"], "gold_terms": ["seed rate", "kg"]}
+{"id": "r05", "lang": "en", "query": "How to correct zinc deficiency in rice?", "gold_docs": ["open06", "open11", "tn02", "tn10"], "gold_terms": ["zinc"]}
+{"id": "r06", "lang": "hi", "query": "रबी मक्का की बुवाई कब करें?", "gold_docs": ["icar03"], "gold_terms": ["sow"]}
+{"id": "r07", "lang": "hi", "query": "कपास में उर्वरक की सिफारिश कैसे करें?", "gold_docs": ["icar05", "open11", "tn08"], "gold_terms": ["fertili", "nutrient"]}
+{"id": "r08", "lang": "hi", "query": "सरसों की उपज कैसे बढ़ाएं?", "gold_docs": ["icar08", "open12"], "gold_terms": ["mustard"]}
+{"id": "r09", "lang": "hi", "query": "चने की बुवाई में पौधों के बीच कितनी दूरी रखें?", "gold_docs": ["open09", "open12"], "gold_terms": ["spacing", "cm"]}
+{"id": "r10", "lang": "hi", "query": "ड्रिप सिंचाई के क्या लाभ हैं?", "gold_docs": ["icar02", "icar04", "tn03", "open01"], "gold_terms": ["drip"]}
+{"id": "r11", "lang": "ta", "query": "கரும்புக்கு உரம் எப்போது இட வேண்டும்?", "gold_docs": ["tn04", "tn06"], "gold_terms": ["sugarcane"]}
+{"id": "r12", "lang": "ta", "query": "நெல் வயலில் நீர் மேலாண்மை எப்படி செய்வது?", "gold_docs": ["tn01", "open05", "open01", "icar07"], "gold_terms": ["water", "irrigat"]}
+{"id": "r13", "lang": "ta", "query": "நிலக்கடலைக்கு ஜிப்சம் எப்போது இட வேண்டும்?", "gold_docs": ["tn07", "open11"], "gold_terms": ["gypsum"]}
+{"id": "r14", "lang": "ta", "query": "வாழைக்கு சொட்டு நீர் பாசனம் எவ்வளவு கொடுக்க வேண்டும்?", "gold_docs": ["tn05", "tn11", "tn03"], "gold_terms": ["banana"]}
+{"id": "r15", "lang": "ta", "query": "துவரையை கோதுமையுடன் சுழற்சி முறையில் பயிரிடலாமா?", "gold_docs": ["open10"], "gold_terms": ["pigeonpea"]}
