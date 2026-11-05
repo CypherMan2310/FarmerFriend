@@ -3,9 +3,9 @@ Tick a box only after that module's test passes. Claude model in [brackets].
 
 ## Phase 0: setup
 - [x] CLAUDE.md, TODO.md, WORK.md [Opus]
-- [ ] repo layout, git init, .gitignore [Haiku]
-- [ ] venv + requirements.txt [Haiku]
-- [ ] config.yaml + src/config.py loader + tests/test_config.py [Sonnet]
+- [x] repo layout, git init, .gitignore [Haiku]
+- [x] venv + requirements.txt (pinned) [Haiku]
+- [x] config.yaml + src/config.py loader + tests/test_config.py [Sonnet]
 - [ ] verify AgriParam, IndicTrans2, embedding model on this machine -> docs/MODEL_CHECK.md [Opus]
 
 ## Phase 1: ingest (data/, src/ingest/)
