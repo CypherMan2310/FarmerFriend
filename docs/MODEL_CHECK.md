@@ -46,7 +46,7 @@ All runs on the RTX 4060 Laptop GPU, torch 2.15.0+cu132, transformers 4.57.6.
 | --- | --- | --- | --- | --- | --- |
 | `bharatgenai/AgriParam` | yes | bfloat16 | 10.7 s | 5.85 GB | see below |
 | `BAAI/bge-m3` | yes | float32 | 16.4 s | 2.28 GB | 1024-dim vectors, cross-lingual check passed |
-| IndicTrans2 dist-200M (both) | **not yet** | | | | download refused: 403 gated, terms not accepted |
+| IndicTrans2 dist-200M (both) | **deferred** | | | | download refused: 403, token cannot read gated repos |
 
 **AgriParam** (greedy, context-based prompt `<context> ... <user> ... <assistant>`, 48 prompt
 tokens, 15 new tokens in 1.25 s):
@@ -62,10 +62,15 @@ re-reads the whole prompt, so a 2000-token prompt with 300 new tokens will be sl
 **bge-m3**: cosine("When should I irrigate my wheat crop?", same question in Hindi) = 0.772;
 cosine(English question, unrelated sentence about the stock market) = 0.286.
 
-**IndicTrans2**: the cached Hugging Face token works, but its account has not accepted the
-terms on the two model pages, so both downloads returned 403 `GatedRepoError`.
-Re-run `python scripts/download_models.py --only translation` and
-`python scripts/model_check.py --only translation` after accepting.
+**IndicTrans2**: deferred by user decision on 2026-11-05. The terms were accepted, but the
+cached token is a fine-grained token with no permissions, so both downloads still return
+403 `GatedRepoError`. Fix before Phase 2: give the token "Read access to contents of all
+public gated repos you can access" (or log in with a Read token via `hf auth login`), then
+run `python scripts/download_models.py --only translation` and
+`python scripts/model_check.py --only translation`.
+The vendored `IndicProcessor` passes an offline test (`tests/test_vendor_indic_processor.py`).
+Non-gated alternative checked but not adopted: `facebook/nllb-200-distilled-600M` (covers
+Tamil and Hindi, licence CC-BY-NC-4.0).
 
 ## 3. Decisions and fallbacks
 
@@ -82,4 +87,5 @@ Re-run `python scripts/download_models.py --only translation` and
 2. AgriParam KV cache crashes; `use_cache=False` makes long prompts slow (Phase 4 debugging).
 3. VRAM: AgriParam 5.85 GB + bge-m3 2.28 GB (fp32) already exceed 8 GB before translation
    models. Plan for Phase 4/5: bge-m3 in fp16 or on CPU, IndicTrans2 on CPU or loaded on demand.
-4. IndicTrans2 terms must be accepted on Hugging Face (user action).
+4. IndicTrans2 load check deferred until the Hugging Face token can read gated repos
+   (user action, before Phase 2).

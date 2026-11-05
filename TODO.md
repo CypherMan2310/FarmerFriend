@@ -6,7 +6,11 @@ Tick a box only after that module's test passes. Claude model in [brackets].
 - [x] repo layout, git init, .gitignore [Haiku]
 - [x] venv + requirements.txt (pinned) [Haiku]
 - [x] config.yaml + src/config.py loader + tests/test_config.py [Sonnet]
-- [ ] verify AgriParam, IndicTrans2, embedding model on this machine -> docs/MODEL_CHECK.md [Opus]
+- [x] verify AgriParam + bge-m3 on this machine -> docs/MODEL_CHECK.md [Opus]
+- [x] vendored IndicProcessor + offline test [Opus]
+- [ ] BLOCKED (user: HF token needs gated-repo read): download + check IndicTrans2.
+      Needed before translate_docs.py (Phase 1) and Phase 2. [Opus]
+- [ ] decide: AgriParam 2048-token window vs top-5 x 300-500-token chunks (before Phase 1 chunking)
 
 ## Phase 1: ingest (data/, src/ingest/)
 - [ ] candidate sources, 30-60 docs, only URLs actually opened [Sonnet]
