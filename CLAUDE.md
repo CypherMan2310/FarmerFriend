@@ -27,8 +27,8 @@ detect lang (Unicode script, no model) -> IndicTrans2 to English (+ glossary for
 English is the pivot language; the index holds English chunks only.
 
 ## Stack
-Python 3.12 (plan says 3.11; not installed on this machine), transformers, IndicTrans2 via
-IndicTransToolkit, sentence-transformers, ChromaDB, rank_bm25, Gradio, pytest.
+Python 3.12 (plan says 3.11; not installed here), transformers, IndicTrans2 (gated; NLLB-200
+fallback in use), sentence-transformers, ChromaDB, rank_bm25, Gradio, pytest.
 Hardware: RTX 4060 Laptop 8 GB VRAM, 40 GB RAM, Windows 11.
 
 ## Layout

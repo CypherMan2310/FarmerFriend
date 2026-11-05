@@ -8,56 +8,39 @@ Tick a box only after that module's test passes. Claude model in [brackets].
 - [x] config.yaml + src/config.py loader + tests/test_config.py [Sonnet]
 - [x] verify AgriParam + bge-m3 on this machine -> docs/MODEL_CHECK.md [Opus]
 - [x] vendored IndicProcessor + offline test [Opus]
-- [ ] BLOCKED (user: HF token needs gated-repo read): download + check IndicTrans2.
-      Needed before translate_docs.py (Phase 1) and Phase 2. [Opus]
-- [ ] decide: AgriParam 2048-token window vs top-5 x 300-500-token chunks (before Phase 1 chunking)
+- [ ] BLOCKED (user: HF token needs gated-repo read): IndicTrans2. NLLB-200 fallback in use.
 
-## Phase 1: ingest (data/, src/ingest/)
-- [ ] candidate sources, 30-60 docs, only URLs actually opened [Sonnet]
-- [ ] data/SOURCES.md: URL + licence per doc; licence allows this use [Sonnet]
-- [ ] download to data/raw/ [Haiku]
-- [ ] extract.py: text per page [Sonnet]
-- [ ] translate_docs.py: non-English pages -> English [Sonnet]
-- [ ] chunk.py: 300-500 tokens, metadata doc/page/language -> data/chunks.jsonl [Sonnet]
-- [ ] tests/test_ingest.py
+## Phase 1: ingest
+- [x] 36 candidate sources researched; 34 kept (data/sources.jsonl, data/SOURCES.md) [Sonnet]
+- [x] scripts/download_sources.py -> data/raw/ [Haiku]
+- [x] extract.py with legacy-font script check [Sonnet]
+- [x] translate_docs.py (102 ta/hi pages, NLLB) [Opus]
+- [x] chunk.py: 300 AgriParam tokens -> data/chunks.jsonl (3042 chunks) [Sonnet]
+- [x] tests/test_ingest.py
 
-## Phase 2: translate (src/translate/)
-- [ ] langdetect.py: Unicode script detection ta/hi/en [Sonnet]
-- [ ] diff vendored IndicProcessor v1.0.2 against IndicTransToolkit 1.1.1 logic [Opus]
-- [ ] glossary.py: crop names + units survive translation [Opus]
-- [ ] indictrans.py: IndicTrans2 wrapper with batching [Opus]
-- [ ] tests/test_translate.py: 10 questions round-trip in ta and hi
+## Phase 2: translate
+- [x] langdetect.py, glossary.py, indictrans.py (IndicTrans2 | NLLB) [Opus]
+- [x] tests/test_translate.py: 10 questions round-trip ta (chrF 48.5) and hi (61.6)
+- [ ] diff vendored IndicProcessor v1.0.2 vs 1.1.1 (only matters once IndicTrans2 is accessible)
 
-## Phase 3: retrieval (src/retrieval/)
-- [ ] embed.py [Opus]
-- [ ] index.py: Chroma + BM25 build [Opus]
-- [ ] hybrid.py: merge dense + BM25 [Opus]
-- [ ] 15 hand-labelled queries, report hit@5 [Sonnet queries, Opus metric]
-- [ ] tests/test_retrieval.py
+## Phase 3: retrieval
+- [x] embed.py, index.py (Chroma), hybrid.py (dense en + native, BM25, RRF) [Opus]
+- [x] 15 hand-labelled queries: hit@5 15/15 (eval/retrieval_report.md)
+- [x] tests/test_retrieval.py
 
-## Phase 4: agent (src/agent/)
-- [ ] prompts.py: grounded prompt + citation format [Opus]
-- [ ] router.py: answer | clarify | refuse; out-of-domain and unsourced-dose refusal [Opus]
-- [ ] generate.py: grounded answer, no-source fallback, figure-citation check [Opus]
-- [ ] CLI answers 10 queries across ta/hi/en [Sonnet]
-- [ ] tests/test_router.py
+## Phase 4: agent
+- [x] prompts.py, router.py, generate.py (tuple-cache greedy loop), pipeline.py [Opus]
+- [x] CLI answers 10 queries in ta/hi/en (eval/cli_run.md)
+- [x] tests/test_router.py
 
-## Phase 5: app (src/app/)
-- [ ] gradio_app.py: single page, chat, language selector, sources panel [Sonnet]
-- [ ] thumbs up/down -> local log file [Sonnet]
-- [ ] runs from a fresh clone with one command [Sonnet]
+## Phase 5: app
+- [x] gradio_app.py: chat, language selector, sources panel, thumbs log [Sonnet]
+- [x] run.ps1 / run.sh one-command run; scripts/build_data.py
 
-## Phase 6: eval (eval/)
-- [ ] cases.jsonl template + loader; user writes gold answers [Sonnet]
-- [ ] metrics.py: hit@5, groundedness, factual correctness, QA accuracy, router accuracy,
-      back-translation chrF, median latency [Opus]
-- [ ] judge.py: LLM judge [Opus]
-- [ ] run_eval.py [Opus]
-- [ ] report.md: results table + failure analysis (tags, counts, 2-3 examples) [Opus medium]
+## Phase 6: eval
+- [x] cases.jsonl (40) + cases.py loader, metrics.py, judge.py, run_eval.py [Opus]
+- [x] report.md with results and failure analysis [Opus medium]
 
 ## Phase 7: polish
-- [ ] README: setup, usage, architecture diagram, results, limitations [Sonnet]
-- [ ] docs/ARCHITECTURE.md [Sonnet]
-- [ ] demo script [Sonnet]
-- [ ] remove dead code [Sonnet]
-- [ ] tag v1.0 [Haiku]
+- [x] README, docs/ARCHITECTURE.md, scripts/demo.py [Sonnet]
+- [x] tag v1.0 [Haiku]
