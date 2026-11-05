@@ -84,6 +84,7 @@ def main() -> None:
         row.update(id=c["id"], category=c["category"], expected_action=c["expected_action"],
                    question=c["question"], lang_ok=right_language(res["answer"], c["lang"]),
                    retrieved=[s["chunk_id"] for s in res["retrieved"]])
+        row["mode"] = res.get("mode")
         row["hit"] = bool(c["gold_doc"]) and retrieval_hit(res["retrieved"], c["gold_doc"], c["evidence"])
         row["judged"] = judge_sentences(bot.llm, parse_cited(res["answer_en"]), res["sources"]) \
             if res["action"] == "answer" and not res["no_source"] else []
@@ -98,7 +99,7 @@ def main() -> None:
             back_h.append(bot.translator.translate([plain], "en", c["lang"])[0])
             back_r.append(c["question"])
             lost = [t for t in english_terms(c["question"], c["lang"])
-                    if t.split()[0] not in plain.lower()]
+                    if not any(w in plain.lower() for w in t.split())]
         row["lost_terms"] = lost
         row["failure"] = tag_failure(c, row)
         rows.append(row)

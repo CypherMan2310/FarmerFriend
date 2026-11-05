@@ -24,3 +24,4 @@ Thumbs.db
 # Intermediate extraction output (full document text)
 data/extracted.jsonl
 data/chunks.jsonl
+eval/results.jsonl
