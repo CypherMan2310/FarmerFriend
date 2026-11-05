@@ -22,12 +22,20 @@ models:
     max_context_tokens: 2048   # max_position_embeddings in the checkpoint's config.json
     max_new_tokens: 300
   translation:
+    # First backend that loads wins. IndicTrans2 is gated on Hugging Face; NLLB-200 is the
+    # non-gated fallback (verified 2026-11-05, licence CC-BY-NC-4.0, non-commercial use).
+    backend_order: [indictrans2, nllb]
     indic_en: ai4bharat/indictrans2-indic-en-dist-200M
     en_indic: ai4bharat/indictrans2-en-indic-dist-200M
     fallbacks:
       indic_en: ai4bharat/indictrans2-indic-en-1B
       en_indic: ai4bharat/indictrans2-en-indic-1B
+    nllb: facebook/nllb-200-distilled-600M
+    device: cuda
+    dtype: float16
     batch_size: 8
+    num_beams: 4
+    max_length: 256
   embedding:
     primary: BAAI/bge-m3
     fallbacks:

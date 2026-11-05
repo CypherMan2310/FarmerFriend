@@ -19,4 +19,5 @@ chromadb==1.5.9
 rank-bm25==0.2.2
 gradio==6.17.3
 PyYAML==6.0.3
+sacrebleu==2.6.0
 pytest==9.2.0
