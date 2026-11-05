@@ -1,0 +1,20 @@
+# Python 3.12. Pinned to versions verified on 2026-11-05 (docs/MODEL_CHECK.md).
+# CUDA build of torch; also runs on CPU-only machines.
+--extra-index-url https://download.pytorch.org/whl/cu132
+torch==2.15.0
+# AgriParam and IndicTrans2 ship custom modeling code written for transformers 4.x
+transformers==4.57.6
+huggingface_hub==0.36.2
+accelerate==1.15.0
+sentence-transformers==5.7.0
+sentencepiece==0.2.3
+# IndicTrans2 pre/post-processing. IndicTransToolkit 1.1.1 needs a C++ compiler on Windows,
+# so its pure-Python IndicProcessor (v1.0.2, MIT) is vendored in src/translate/_vendor/.
+indic-nlp-library-itt==0.1.1
+sacremoses==0.2.0
+tqdm==4.70.1
+chromadb==1.5.9
+rank-bm25==0.2.2
+gradio==6.17.3
+PyYAML==6.0.3
+pytest==9.2.0
