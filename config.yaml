@@ -72,3 +72,7 @@ paths:
   feedback_log: logs/feedback.jsonl
   eval_cases: eval/cases.jsonl
   eval_report: eval/report.md
+
+app:
+  host: 127.0.0.1
+  port: 7865          # 7860 is often taken by other local Gradio apps

@@ -75,10 +75,11 @@ def build_app(bot: Any) -> gr.Blocks:
 
 
 def main() -> None:
-    """Load models once and launch on http://127.0.0.1:7860."""
+    """Load models once and launch on the host/port in config.yaml (app section)."""
     from src.agent.pipeline import Assistant
 
-    build_app(Assistant()).launch(server_name="127.0.0.1", server_port=7860)
+    app_cfg = load_config()["app"]
+    build_app(Assistant()).launch(server_name=app_cfg["host"], server_port=app_cfg["port"])
 
 
 if __name__ == "__main__":

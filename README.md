@@ -19,7 +19,7 @@ powershell -ExecutionPolicy Bypass -File run.ps1
 On Linux/macOS: `bash run.sh`. The script creates `.venv`, installs `requirements.txt`,
 downloads the models and the 34 source documents, builds the index
 (`scripts/build_data.py`, about 20 minutes the first time) and opens the app at
-http://127.0.0.1:7860.
+http://127.0.0.1:7865 (port set in `config.yaml`).
 
 Optional: IndicTrans2 is gated on Hugging Face. To use it instead of NLLB-200, accept its
 terms and log in with a token that can read gated repos (`hf auth login`). No other keys
