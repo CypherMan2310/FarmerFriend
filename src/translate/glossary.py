@@ -9,7 +9,7 @@ GLOSSARY: dict[str, dict[str, str]] = {
     "hi": {
         "गेहूं": "wheat", "गेहूँ": "wheat", "धान": "paddy rice", "चावल": "rice", "मक्का": "maize",
         "कपास": "cotton", "गन्ना": "sugarcane", "गन्ने": "sugarcane", "सरसों": "mustard",
-        "चना": "chickpea", "अरहर": "pigeonpea", "तुअर": "pigeonpea", "सोयाबीन": "soybean",
+        "चना": "chickpea", "चने": "chickpea", "अरहर": "pigeonpea", "तुअर": "pigeonpea", "सोयाबीन": "soybean",
         "मूंगफली": "groundnut", "केला": "banana", "केले": "banana", "टमाटर": "tomato",
         "बाजरा": "pearl millet", "ज्वार": "sorghum", "मूंग": "greengram", "उड़द": "blackgram",
         "नारियल": "coconut", "प्याज": "onion", "आलू": "potato", "हेक्टेयर": "hectare",
