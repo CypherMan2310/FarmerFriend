@@ -35,12 +35,19 @@ models:
 
 retrieval:
   top_k: 5
-  chunk_min_tokens: 300
-  chunk_max_tokens: 500
+
+chunking:
+  # Counted with the answer LLM's tokenizer (models.llm.primary). 300 is the plan's lower
+  # bound: 5 x 300 + prompt + 300 new tokens stays inside AgriParam's 2048-token window.
+  max_tokens: 300
+  overlap_tokens: 40
+  min_tokens: 80        # a shorter final chunk is merged into the previous one if it fits
 
 paths:
   raw_dir: data/raw
   sources: data/SOURCES.md
+  source_manifest: data/sources.jsonl
+  extracted: data/extracted.jsonl
   chunks: data/chunks.jsonl
   index_dir: data/index
   feedback_log: logs/feedback.jsonl
