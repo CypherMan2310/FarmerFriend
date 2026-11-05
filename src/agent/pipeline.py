@@ -8,7 +8,7 @@ from typing import Any
 from src.agent import prompts
 from src.agent.generate import LLM, extractive_answer, ground_answer
 from src.agent.query import prepare_query
-from src.agent.router import route
+from src.agent.router import CROPS, route
 from src.config import load_config
 
 
@@ -58,16 +58,20 @@ class Assistant:
     def _answer(self, pq: Any, retrieved: list[dict[str, Any]], out: dict[str, Any]) -> None:
         kept: list[dict[str, Any]] = []
         used = retrieved
+        a = self.cfg["answer"]
         best_sim = max((c["dense_sim"] for c in retrieved), default=0.0)
-        if self.llm is not None and best_sim >= self.cfg["router"]["answer_min_sim"]:
-            budget = self.llm.max_ctx - self.llm.max_new
-            prompt, used = prompts.build_prompt(pq.english, retrieved, self.llm.count, budget)
-            out["raw_llm"] = self.llm.generate(prompt)
-            kept = ground_answer(out["raw_llm"], used)
-        out["mode"] = "generated"
-        if not kept and best_sim >= self.cfg["router"]["answer_min_sim"]:
-            kept = extractive_answer(pq.english, used)  # quote sources rather than guess
-            out["mode"] = "extractive"
+        if best_sim >= self.cfg["router"]["answer_min_sim"]:  # else: no-source message
+            if a["mode"] == "extractive_first":
+                # Quote the best source sentences verbatim; AgriParam is the fallback.
+                kept = extractive_answer(pq.english, retrieved, self.retriever.embedder.encode,
+                                         CROPS, a["extractive_k"], a["extractive_min_sim"])
+                out["mode"] = "extractive"
+            if not kept and self.llm is not None:
+                budget = self.llm.max_ctx - self.llm.max_new
+                prompt, used = prompts.build_prompt(pq.english, retrieved, self.llm.count, budget)
+                out["raw_llm"] = self.llm.generate(prompt)
+                kept = ground_answer(out["raw_llm"], used)
+                out["mode"] = "generated"
         cited = {s["cite"] for s in kept}
         out["sources"] = [{**c, "n": i, "cited": i in cited} for i, c in enumerate(used, 1)]
         if not kept:

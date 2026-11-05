@@ -55,6 +55,13 @@ router:
   ood_min_sim: 0.35          # no farming keyword, or best dense cosine below this -> refuse
   answer_min_sim: 0.40       # below this the LLM is not called -> no-source fallback
 
+answer:
+  # extractive_first: quote the source sentences most similar to the question (verbatim,
+  # cited); AgriParam generates only if none is similar enough. generate: AgriParam first.
+  mode: extractive_first
+  extractive_k: 2
+  extractive_min_sim: 0.45
+
 chunking:
   # Counted with the answer LLM's tokenizer (models.llm.primary). 300 is the plan's lower
   # bound: 5 x 300 + prompt + 300 new tokens stays inside AgriParam's 2048-token window.

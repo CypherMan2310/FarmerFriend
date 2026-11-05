@@ -8,7 +8,7 @@ tuple caches and falls back to ``generate(use_cache=False)`` if that fails.
 from __future__ import annotations
 
 import re
-from typing import Any
+from typing import Any, Callable
 
 import torch
 
@@ -100,24 +100,43 @@ def _source_sentences(chunks: list[dict[str, Any]]) -> list[tuple[int, str]]:
             if len(s.strip()) > 20]
 
 
-def extractive_answer(question: str, chunks: list[dict[str, Any]], k: int = 2,
-                      min_overlap: float = 0.3) -> list[dict[str, Any]]:
-    """Quote the ``k`` source sentences that best cover the question (verbatim, cited).
+def is_statement(sentence: str, min_words: int = 6) -> bool:
+    """True for a sentence that can serve as an answer: not a question, not a short heading.
 
-    Used when no generated sentence passes grounding; keeps answers strictly in-source.
+    Source documents contain FAQ-style question headings; quoting one ("What is the best
+    method ...?") would answer every similar question with the same non-answer.
     """
-    qw = _content_words(question)
-    if not qw:
+    s = sentence.strip()
+    return not s.endswith("?") and len(s.split()) >= min_words
+
+
+def extractive_answer(question: str, chunks: list[dict[str, Any]],
+                      embed: Callable[[list[str]], Any], crops: set[str], k: int = 2,
+                      min_sim: float = 0.45, max_chars: int = 600) -> list[dict[str, Any]]:
+    """Quote the ``k`` source sentences most similar to the question (verbatim, cited).
+
+    If the question names a crop, only chunks mentioning that crop are used, so a figure is
+    never quoted from a passage about another crop. Sentences are ranked by embedding
+    cosine similarity and returned in document order.
+    """
+    q = question.lower()
+    asked = {c for c in crops if re.search(rf"\b{c}", q)}
+    usable = [(i, c) for i, c in enumerate(chunks, 1)
+              if not asked or any(a in c["text"].lower() for a in asked)]
+    cands = [(i, s.strip()) for i, c in usable for s in _SENT.split(c["text"])
+             if 30 <= len(s.strip()) <= max_chars and is_statement(s)]
+    if not cands:
         return []
-    scored = sorted(((len(qw & _content_words(s)) / len(qw), -i, s) for i, s in
-                     _source_sentences(chunks[:3]) if len(s) <= 500), reverse=True)
-    out = []
-    for score, neg_i, s in scored:
-        if score < min_overlap or len(out) == k:
+    vecs = embed([question] + [s for _, s in cands])
+    sims = (vecs[1:] @ vecs[0]).tolist()
+    picked: list[int] = []
+    for j in sorted(range(len(cands)), key=lambda j: -sims[j]):
+        if len(picked) == k or sims[j] < min_sim:
             break
-        if s not in {o["text"] for o in out}:
-            out.append({"text": s, "cite": -neg_i, "extractive": True})
-    return out
+        if cands[j][1] not in {cands[p][1] for p in picked}:  # chunk overlap repeats text
+            picked.append(j)
+    picked.sort()
+    return [{"text": cands[j][1], "cite": cands[j][0], "sim": round(sims[j], 3)} for j in picked]
 
 
 def ground_answer(answer: str, chunks: list[dict[str, Any]],
@@ -136,7 +155,7 @@ def ground_answer(answer: str, chunks: list[dict[str, Any]],
     for sent in (s.strip() for s in _SENT.split(answer)):
         bare = _CITE.sub("", sent).strip()
         cw = _content_words(bare)
-        if not bare or "NO_SOURCE" in bare or not cw or not src:
+        if not bare or "NO_SOURCE" in bare or not cw or not src or not is_statement(bare, 3):
             continue
         figs = set(figures(bare))
         best = max(src, key=lambda x: (figs <= x[2], len(cw & x[1])))
