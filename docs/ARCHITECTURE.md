@@ -46,6 +46,9 @@ flowchart LR
 - **KV cache.** AgriParam's custom code uses tuple caches that break inside transformers'
   `generate()`. `LLM._greedy_cached` runs greedy decoding with tuple caches (token-identical
   to `generate(use_cache=False)`, verified) and is much faster on long prompts.
+- **Quote-first answers.** `extractive_answer` quotes the source sentences most similar to the
+  question (bge-m3), only from chunks naming the asked crop, never question-shaped headings.
+  AgriParam generates only when no sentence passes the similarity threshold.
 - **Grounding is enforced after generation**, not trusted to the model: each sentence must
   overlap a retrieved chunk and every figure in it must appear in that chunk, otherwise it is
   removed. If nothing survives, the no-source message is shown.

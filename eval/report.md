@@ -2,101 +2,104 @@
 
 40 cases (`eval/cases.jsonl`): 10 crop, 8 irrigation, 8 fertilizer, 6 clarification,
 8 refuse; 15 Tamil, 15 Hindi, 10 English. Run with `python eval/run_eval.py`; per-case
-output in `eval/metrics.md`, raw results in `eval/results.jsonl`.
+output in `eval/metrics.md` (earlier runs: `metrics_run1.md`, `metrics_run2.md`).
 
-**System under test:** AgriParam (bf16, greedy decoding with repetition blocking), NLLB-200
-600M for translation (IndicTrans2 was not accessible: gated repo, token lacked permission),
-bge-m3 + BM25 hybrid retrieval, rule-based router. RTX 4060 Laptop 8 GB.
+**System under test (run 3, final):** quote-first answers (the source sentences most similar
+to the question, ranked by bge-m3, restricted to chunks that mention the crop asked, quoted
+verbatim with citations) with AgriParam generation as fallback; NLLB-200 600M translation
+(IndicTrans2 was not accessible: gated repo, token lacked permission); bge-m3 + BM25 hybrid
+retrieval; rule-based router. RTX 4060 Laptop 8 GB.
 
 **Gold answers.** The plan asked for gold answers written by hand. The user asked Claude to
-finish the project without further input, so Claude wrote the 2-4 key facts per case by
-copying them from the source documents (each case stores the source document and an exact
-evidence phrase, all verified to exist in the chunks). They were not written by the user.
+finish without further input, so Claude wrote the 2-4 key facts per case by copying them from
+one source document (each case stores the document and an exact evidence phrase, verified to
+exist in the chunks). They were not written by the user.
 
-**Judge.** No external LLM API was available. `judge.py` combines (a) a lexical check: word
-overlap >= 0.5 with the cited chunk and every figure present, and (b) AgriParam asked
-"does the context state this claim? yes/no". Claude then read all 40 final answers
-(manual check below).
+**Judge.** No external LLM API was available. `judge.py` combines a lexical check (word
+overlap >= 0.5 with the cited chunk, every figure present) with AgriParam asked "does the
+context state this claim? yes/no". Claude then read all final answers (manual check).
 
 ## Results
 
-| Metric | Run 1 | Run 2 (final) |
-| --- | --- | --- |
-| Retrieval hit@5 (evidence chunk in top 5, 26 answer cases) | 0.46 | 0.46 |
-| Groundedness, lexical judge (final answer sentences) | - | 1.00 (44/44) |
-| Groundedness, AgriParam judge (final answer sentences) | 0.14 | 0.11 (5/44) |
-| Groundedness, manual (answered cases fully supported and coherent) | - | 0.41 (9/22) |
-| Factual correctness (share of gold facts in answer) | 0.06 | 0.14 |
-| Domain QA accuracy (right action, right language, >= half the facts) | 0.33 | 0.45 |
-| Router accuracy | 0.90 | **0.975** |
-| No-source rate on answer cases | 0.15 | 0.15 |
-| Back-translation chrF (30 ta/hi questions) | 54.7 | 54.7 |
-| Median latency per question | 3.65 s | 3.74 s |
+| Metric | Run 1 | Run 2 | Run 3 (final) |
+| --- | --- | --- | --- |
+| Retrieval hit@5 (exact evidence passage in top 5, 26 answer cases) | 0.46 | 0.46 | 0.46 |
+| Groundedness, AgriParam judge (answer sentences) | 0.14 | 0.11 | 0.31 |
+| Groundedness, lexical judge | - | 1.00 | 1.00 |
+| Groundedness, manual | - | 0.41 | 1.00 (all sentences are verbatim quotes) |
+| Answers the question, manual (26 answer cases) | - | - | 0.50 (13) + 3 partial |
+| Factual correctness (gold facts present) | 0.06 | 0.14 | 0.22 |
+| Domain QA accuracy | 0.33 | 0.45 | **0.525** |
+| Router accuracy | 0.90 | 0.975 | **0.975** |
+| No-source rate on answer cases | 0.15 | 0.15 | 0.00 |
+| Back-translation chrF (30 ta/hi questions) | 54.7 | 54.7 | 54.7 |
+| Median latency per question | 3.65 s | 3.74 s | 7.45 s |
 
 Phase 3 retrieval on its own 15 hand-labelled queries (document-level hit with a key term):
-**hit@5 = 15/15** after one glossary fix (`eval/retrieval_report.md`). The eval hit@5 above
-is stricter: the specific evidence passage must be in the top 5.
+**hit@5 = 15/15** after one glossary fix (`eval/retrieval_report.md`).
 
-**Run 1 to run 2 changes:** router requires a farming keyword (a fever/medicine question had
-been answered from a pesticide-poisoning passage); scheme/subsidy questions are not sent to
-clarification; grounding moved from chunk level to sentence level (every figure must sit in
-one source sentence that shares >= 50% of the words); 3-gram repetition blocking; when no
-generated sentence survives, the answer quotes the best source sentences verbatim.
+Changes between runs:
+- **Run 1 to 2:** router requires a farming keyword; scheme/subsidy questions skip
+  clarification; sentence-level figure grounding; 3-gram repetition blocking; extractive
+  fallback.
+- **Run 2 to 3:** quote-first answers with a crop filter; question-shaped sentences (FAQ
+  headings) are never used as answers. After run 3, identical sentences repeated by
+  overlapping chunks are de-duplicated (presentation only).
 
-**The AgriParam judge is unreliable:** it answered "no" for verbatim source quotes (e.g.
-i05, f05), so its 0.11 understates groundedness. The lexical judge overstates it (it accepts
-garbled sentences built from source words). The manual figure (0.41) is the best estimate.
+**Reading the numbers.** Factual correctness and QA accuracy undercount: gold facts come from
+one document, but several answers quote a different valid source (c04 PAU mustard sowing
+dates, i03 PAU first irrigation, f01 PAU wheat dose, f02 PAU zinc dose). The AgriParam judge
+rejects many verbatim quotes, so it understates groundedness. The manual columns are the best
+estimate. The no-source rate dropped to 0: the system now quotes the closest passage even when
+it is only loosely related, instead of saying it has no source (see limitations).
 
-## Failure analysis (run 2)
-
-Automatic tags (`eval/metrics.md`) depend on the AgriParam judge, so Claude re-checked each
-failed case by hand. Manual tags:
+## Failure analysis (run 3, manual tags)
 
 | Cause | Cases | Ids |
 | --- | --- | --- |
-| Translation error | 9 | c07, c08, c09, c10, i03, i08, f03, f06, f07 |
-| Hallucination (garbled or unsupported generated text) | 5 | c02, c04, i01, i04, i06 |
-| Retrieval miss | 4 | c06, i07, f02, f08 |
-| Other (grounded but off-target, or no answer despite a hit) | 4 | c03, c05, f01, f05 |
-| Unit or dosage error (figure from the wrong context) | 1 | f04 |
+| Translation error (query mistranslated, wrong passage quoted) | 6 | c08, c09, c10, f06, f07, f08 (all Tamil) |
+| Retrieval miss (query fine, right passage not in top 5) | 3 | c06, f04, i08 |
+| Other: right passage, wrong sentence chosen | 3 | c05, i04, c01 (table header only) |
+| Unit or dosage error (figure from another crop's context) | 1 | f03 |
 | Wrong router action | 1 | x04 |
-| Not a failure on review | 3 | c01 (partly correct), i02, i05 (correct; strict hit rule missed) |
-
-Translation is the largest cause: 8 of the 9 are Tamil. NLLB rendered maize as
-"cornstarch", zinc as "tissue", sugarcane trash as "cotton bud", and paddy as "wheat".
+| Hallucination | 0 | (answers are verbatim quotes; run 2 had 5) |
 
 ### Worked examples
 
-1. **Translation error to no source (f07, Tamil).** Question: how much zinc to prevent zinc
-   deficiency in rice. NLLB produced "How much tissue is needed to prevent a nail defect?";
-   the glossary only added "(paddy rice)", retrieval found nothing about zinc, and the app
-   returned the no-source message (safe but unhelpful). The same failure in Phase 3 (Hindi
-   "चने" translated as "seedling") was fixed by adding the inflected form to the glossary,
-   which took hit@5 from 14/15 to 15/15. Next fix: add zinc and other nutrient terms to the
-   Tamil glossary, or use IndicTrans2 once the token can read gated repos.
-2. **Wrong router action, fixed (x05 in run 1).** "I have a fever, which medicine?" had no
-   farming keyword but a dense similarity of 0.60 to a pesticide-poisoning first-aid passage,
-   so the router answered and quoted antidote doses. Fix: a farming keyword is now required
-   before answering. Run 2 refuses it; router accuracy went from 0.90 to 0.975. The one
-   remaining router error (x04) is also translation-driven: "मोनोक्रोटोफॉस" became
-   "monocrotophose", which the pesticide list did not match, so the question went to the answer
-   path. It ended in the no-source message, so no dose was shown, but it should have been
-   refused.
-3. **Hallucination (c04, Hindi mustard sowing time).** The source says "between 10 and 25
-   October"; AgriParam generated "The sowing time of sowing is between October to October".
-   The sentence has no figures and shares many words with the source, so the grounding check
-   kept it. Fixes tried: sentence-level grounding and repetition blocking (factual correctness
-   0.06 to 0.14, QA accuracy 0.33 to 0.45), but garbled paraphrases remain. A related risk
-   shows in f04: the figure check guarantees every number appears in the cited source
-   sentence, not that the sentence is about the crop asked (a groundnut gypsum timing was
-   given for rice). Next steps: quote-first (extractive) answers for dose questions, and a
-   stronger instruction-following model or judge.
+1. **Translation error (f07, Tamil).** "How much zinc to prevent zinc deficiency in rice?"
+   became "How much tissue is needed to prevent a nail defect?". Retrieval found nothing about
+   zinc and the answer quoted a nursery-spacing sentence. Fix tried: the glossary appends
+   "(paddy rice)" but has no nutrient terms. The same kind of error in Phase 3 (Hindi "चने",
+   chickpea, rendered as "seedling") was fixed by a glossary entry, raising hit@5 from 14/15 to
+   15/15. Next: add nutrient and practice terms to the Tamil glossary, or use IndicTrans2
+   once the Hugging Face token can read gated repos.
+2. **Wrong router action (x05 in run 1, x04 now).** "I have a fever, which medicine?" had no
+   farming keyword but 0.60 similarity to a pesticide-poisoning first-aid passage, so run 1
+   answered with antidote doses. Fix: a farming keyword is required (router accuracy
+   0.90 to 0.975). The remaining error, x04, is translation-driven: "मोनोक्रोटोफॉस" became
+   "monocrotophose", which the pesticide list does not match, so a dose question that should
+   be refused went to the answer path (no dose was shown in runs 2 and 3, but it was not
+   refused).
+3. **Generation and selection errors (c04 and the repeated answer).** In run 2 AgriParam
+   wrote "The sowing time of sowing is between October to October" for mustard (the source says
+   10-25 October). Quote-first answering fixed this: run 3 quotes the PAU sowing-date table.
+   The first quote-first version then answered many questions with the same FAQ heading,
+   "What is the best method for direct sowing in tar-wattar fields?", because question-shaped
+   sentences are similar to every question. Fix: sentences ending in "?" or shorter than six
+   words are never answers (`is_statement`, tested).
+4. **Wrong-crop figure (f03).** The Hindi question about direct-seeded rice was translated with
+   "strawberries"; one quoted sentence gives a wheat seed and DAP dose. The figure is exact in
+   its source, but it is about another crop. The crop filter only applies when a crop name
+   survives translation.
 
 ## Limitations
 
-- AgriParam (2.9 B, 2048-token window) often ignores the citation format and paraphrases
-  poorly under greedy decoding; citations are attached after generation by word overlap.
-- Tamil translation through NLLB is the weakest link (back-translation chrF 54.7 overall).
-- Gold facts were written by Claude from the sources, and the manual check was done by Claude,
-  not by an agronomist or the user.
+- Tamil translation through NLLB is the weakest link: 6 of the 13 failures, and answers
+  translated back into Tamil are often hard to read (figures are kept exact).
+- Quote-first answers are faithful but can be long or tangential, and the system now rarely
+  says "no source"; a higher similarity threshold would trade coverage for precision.
+- AgriParam (2.9 B, 2048 tokens) is only used as a fallback because its paraphrases were
+  often garbled; it also ignored the citation format.
+- Gold facts and the manual check were done by Claude from the sources, not by an agronomist
+  or the user. The LLM judge (AgriParam) was unreliable.
 - The corpus is 34 documents; most are "all rights reserved" and used only locally.

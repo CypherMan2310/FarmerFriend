@@ -43,7 +43,7 @@ flowchart LR
     Q[Question] --> D[Script detection] --> T[Translate to English<br/>+ glossary]
     T --> R[Hybrid retrieval<br/>bge-m3 + BM25] --> RT{Router}
     RT -- refuse / clarify --> M[Message]
-    RT -- answer --> G[AgriParam] --> V[Grounding check<br/>figures must be in source]
+    RT -- answer --> G[Quote best source sentences<br/>AgriParam as fallback] --> V[Grounding check<br/>figures must be in source]
     V --> B[Translate back] --> UI[Gradio + sources]
     M --> B
 ```
@@ -65,23 +65,24 @@ Models and all settings: `config.yaml`. Model checks: `docs/MODEL_CHECK.md`.
 | Router accuracy (answer / clarify / refuse) | 0.975 |
 | Retrieval hit@5, 15 labelled queries | 15/15 |
 | Retrieval hit@5, exact evidence passage, 26 answer cases | 0.46 |
-| Groundedness (manual check) | 0.41 |
-| Factual correctness | 0.14 |
-| Domain QA accuracy | 0.45 |
+| Groundedness (manual; answers are verbatim source quotes) | 1.00 |
+| Answers the question (manual, 26 answer cases) | 0.50 + 3 partial |
+| Factual correctness (gold facts present) | 0.22 |
+| Domain QA accuracy | 0.525 |
 | Back-translation chrF (ta/hi questions) | 54.7 |
-| Median latency | 3.7 s |
+| Median latency | 7.5 s |
 
-Safety behaviour is strong: out-of-domain questions and pesticide doses not stated in a source
-are refused, and every figure shown appears in the cited source sentence. Answer quality is
-weak: Tamil translation errors and AgriParam's garbled paraphrases are the main failure
-causes.
+Answers quote the most relevant source sentences verbatim, with citations, so every figure
+shown is exactly as written in the source. AgriParam generates only when no sentence is close
+enough, because its paraphrases were often garbled. Out-of-domain questions and pesticide
+doses not stated in a source are refused. Tamil translation errors are the main failure cause.
 
 ## Limitations
 
 - **Translation errors**, especially Tamil through NLLB: maize became "cornstarch" and zinc
   became "tissue". A crop and unit glossary repairs some of these.
-- **Small model, small corpus**: 34 documents; AgriParam often paraphrases poorly. When no
-  generated sentence can be verified, the app quotes source sentences or says it has no source.
+- **Small model, small corpus**: 34 documents; AgriParam paraphrased poorly, so answers are
+  quoted source sentences; these can be long or only loosely related to the question.
 - **Figures are checked, context is not fully**: a number is shown only if it is in the cited
   source sentence, but that sentence can be about a different crop (see report, f04).
 - **Evaluation**: gold facts and the manual check were done by Claude from the sources, not by

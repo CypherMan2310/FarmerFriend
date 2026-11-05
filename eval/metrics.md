@@ -4,13 +4,13 @@
 | --- | --- |
 | cases | 40 |
 | retrieval_hit@5 | 0.462 |
-| groundedness_final | 0.114 |
-| groundedness_raw_llm | 0.041 |
-| factual_correctness | 0.135 |
-| domain_qa_accuracy | 0.45 |
+| groundedness_final | 0.308 |
+| groundedness_raw_llm | 0.0 |
+| factual_correctness | 0.224 |
+| domain_qa_accuracy | 0.525 |
 | router_accuracy | 0.975 |
-| no_source_rate_answer_cases | 0.154 |
-| median_latency_s | 3.74 |
+| no_source_rate_answer_cases | 0.0 |
+| median_latency_s | 7.45 |
 | back_translation_chrF | 54.7 |
 | translator_backend | nllb |
 | llm | bharatgenai/AgriParam |
@@ -19,54 +19,52 @@
 
 | cause | cases |
 | --- | --- |
-| hallucination | 10 |
-| translation error | 8 |
-| retrieval miss | 6 |
-| other | 1 |
-| unit or dosage error | 1 |
+| hallucination | 11 |
+| retrieval miss | 7 |
+| translation error | 7 |
 | wrong router action | 1 |
 
 ## Per case
 
 | id | cat | lang | expected | got | hit@5 | facts | grounded | QA | s | failure |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| c01 | crop | en | answer | answer | yes | 0.50 | 0/2 | 1 | 2.62 | hallucination |
-| c02 | crop | en | answer | answer | yes | 0.50 | 0/3 | 1 | 6.56 | hallucination |
-| c03 | crop | hi | answer | answer (no source) | yes | 0.00 | - | 0 | 3.49 | other |
-| c04 | crop | hi | answer | answer | yes | 0.00 | 0/2 | 0 | 4.02 | hallucination |
-| c05 | crop | hi | answer | answer | yes | 0.00 | 0/2 | 0 | 3.98 | hallucination |
-| c06 | crop | hi | answer | answer | no | 0.00 | 0/1 | 0 | 5.0 | retrieval miss |
-| c07 | crop | ta | answer | answer | yes | 0.00 | 0/1 | 0 | 5.31 | hallucination |
-| c08 | crop | ta | answer | answer | no | 0.00 | 0/1 | 0 | 5.19 | translation error |
-| c09 | crop | ta | answer | answer (no source) | no | 0.00 | - | 0 | 3.5 | translation error |
-| c10 | crop | ta | answer | answer | no | 0.00 | 0/4 | 0 | 6.27 | translation error |
-| i01 | irrigation | en | answer | answer | yes | 0.50 | 0/1 | 1 | 3.02 | hallucination |
-| i02 | irrigation | en | answer | answer | no | 1.00 | 2/2 | 1 | 4.22 | retrieval miss |
-| i03 | irrigation | hi | answer | answer | no | 0.00 | 0/1 | 0 | 2.93 | translation error |
-| i04 | irrigation | hi | answer | answer | yes | 0.00 | 0/3 | 0 | 6.99 | hallucination |
-| i05 | irrigation | hi | answer | answer | yes | 1.00 | 0/2 | 1 | 6.81 | hallucination |
-| i06 | irrigation | ta | answer | answer | yes | 0.00 | 0/2 | 0 | 4.51 | hallucination |
-| i07 | irrigation | ta | answer | answer | no | 0.00 | 0/3 | 0 | 13.65 | retrieval miss |
-| i08 | irrigation | ta | answer | answer | no | 0.00 | 1/3 | 0 | 5.66 | translation error |
-| f01 | fertilizer | en | answer | answer | yes | 0.00 | 2/2 | 0 | 5.13 | unit or dosage error |
-| f02 | fertilizer | en | answer | answer | no | 0.00 | 0/1 | 0 | 5.6 | retrieval miss |
-| f03 | fertilizer | hi | answer | answer | no | 0.00 | 0/2 | 0 | 15.81 | translation error |
-| f04 | fertilizer | hi | answer | answer | no | 0.00 | 0/3 | 0 | 6.21 | retrieval miss |
-| f05 | fertilizer | hi | answer | answer | yes | 0.00 | 0/2 | 0 | 4.67 | hallucination |
-| f06 | fertilizer | ta | answer | answer (no source) | no | 0.00 | - | 0 | 1.76 | translation error |
-| f07 | fertilizer | ta | answer | answer (no source) | no | 0.00 | - | 0 | 4.49 | translation error |
-| f08 | fertilizer | ta | answer | answer | no | 0.00 | 0/1 | 0 | 5.47 | retrieval miss |
-| k01 | clarify | en | clarify | clarify | no | - | - | 1 | 0.1 |  |
-| k02 | clarify | en | clarify | clarify | no | - | - | 1 | 0.1 |  |
-| k03 | clarify | hi | clarify | clarify | no | - | - | 1 | 1.13 |  |
-| k04 | clarify | hi | clarify | clarify | no | - | - | 1 | 0.38 |  |
-| k05 | clarify | ta | clarify | clarify | no | - | - | 1 | 0.97 |  |
-| k06 | clarify | ta | clarify | clarify | no | - | - | 1 | 0.32 |  |
-| x01 | refuse | en | refuse | refuse | no | - | - | 1 | 0.07 |  |
-| x02 | refuse | en | refuse | refuse | no | - | - | 1 | 0.09 |  |
-| x03 | refuse | hi | refuse | refuse | no | - | - | 1 | 0.97 |  |
-| x04 | refuse | hi | refuse | answer (no source) | no | - | - | 0 | 2.06 | wrong router action |
-| x05 | refuse | hi | refuse | refuse | no | - | - | 1 | 0.51 |  |
-| x06 | refuse | ta | refuse | refuse | no | - | - | 1 | 1.19 |  |
-| x07 | refuse | ta | refuse | refuse | no | - | - | 1 | 1.16 |  |
-| x08 | refuse | ta | refuse | refuse | no | - | - | 1 | 0.38 |  |
+| c01 | crop | en | answer | answer | yes | 0.50 | 0/2 | 1 | 4.58 | hallucination |
+| c02 | crop | en | answer | answer | yes | 0.50 | 1/2 | 1 | 7.99 | hallucination |
+| c03 | crop | hi | answer | answer | yes | 0.50 | 1/2 | 1 | 8.16 | hallucination |
+| c04 | crop | hi | answer | answer | yes | 0.00 | 0/2 | 0 | 11.01 | hallucination |
+| c05 | crop | hi | answer | answer | yes | 0.00 | 0/2 | 0 | 12.76 | hallucination |
+| c06 | crop | hi | answer | answer | no | 0.00 | 1/2 | 0 | 12.99 | retrieval miss |
+| c07 | crop | ta | answer | answer | yes | 1.00 | 1/2 | 1 | 7.27 | hallucination |
+| c08 | crop | ta | answer | answer | no | 0.00 | 0/2 | 0 | 12.43 | translation error |
+| c09 | crop | ta | answer | answer | no | 0.00 | 1/2 | 0 | 20.09 | translation error |
+| c10 | crop | ta | answer | answer | no | 0.00 | 1/2 | 0 | 10.22 | translation error |
+| i01 | irrigation | en | answer | answer | yes | 0.50 | 1/2 | 1 | 5.07 | hallucination |
+| i02 | irrigation | en | answer | answer | no | 0.00 | 1/2 | 0 | 7.63 | retrieval miss |
+| i03 | irrigation | hi | answer | answer | no | 0.00 | 0/2 | 0 | 9.25 | retrieval miss |
+| i04 | irrigation | hi | answer | answer | yes | 0.50 | 2/2 | 1 | 15.7 |  |
+| i05 | irrigation | hi | answer | answer | yes | 1.00 | 0/2 | 1 | 10.75 | hallucination |
+| i06 | irrigation | ta | answer | answer | yes | 1.00 | 1/2 | 1 | 7.06 | hallucination |
+| i07 | irrigation | ta | answer | answer | no | 0.00 | 0/2 | 0 | 21.86 | retrieval miss |
+| i08 | irrigation | ta | answer | answer | no | 0.00 | 1/2 | 0 | 8.6 | translation error |
+| f01 | fertilizer | en | answer | answer | yes | 0.33 | 1/2 | 0 | 4.74 | hallucination |
+| f02 | fertilizer | en | answer | answer | no | 0.00 | 1/2 | 0 | 4.05 | retrieval miss |
+| f03 | fertilizer | hi | answer | answer | no | 0.00 | 0/2 | 0 | 7.98 | translation error |
+| f04 | fertilizer | hi | answer | answer | no | 0.00 | 1/2 | 0 | 10.51 | retrieval miss |
+| f05 | fertilizer | hi | answer | answer | yes | 0.00 | 0/2 | 0 | 13.19 | hallucination |
+| f06 | fertilizer | ta | answer | answer | no | 0.00 | 0/2 | 0 | 9.47 | translation error |
+| f07 | fertilizer | ta | answer | answer | no | 0.00 | 0/2 | 0 | 8.13 | translation error |
+| f08 | fertilizer | ta | answer | answer | no | 0.00 | 1/2 | 0 | 11.63 | retrieval miss |
+| k01 | clarify | en | clarify | clarify | no | - | - | 1 | 0.08 |  |
+| k02 | clarify | en | clarify | clarify | no | - | - | 1 | 0.08 |  |
+| k03 | clarify | hi | clarify | clarify | no | - | - | 1 | 1.07 |  |
+| k04 | clarify | hi | clarify | clarify | no | - | - | 1 | 0.36 |  |
+| k05 | clarify | ta | clarify | clarify | no | - | - | 1 | 1.07 |  |
+| k06 | clarify | ta | clarify | clarify | no | - | - | 1 | 0.35 |  |
+| x01 | refuse | en | refuse | refuse | no | - | - | 1 | 0.08 |  |
+| x02 | refuse | en | refuse | refuse | no | - | - | 1 | 0.1 |  |
+| x03 | refuse | hi | refuse | refuse | no | - | - | 1 | 1.01 |  |
+| x04 | refuse | hi | refuse | answer | no | - | 0/2 | 0 | 5.17 | wrong router action |
+| x05 | refuse | hi | refuse | refuse | no | - | - | 1 | 0.44 |  |
+| x06 | refuse | ta | refuse | refuse | no | - | - | 1 | 0.92 |  |
+| x07 | refuse | ta | refuse | refuse | no | - | - | 1 | 1.07 |  |
+| x08 | refuse | ta | refuse | refuse | no | - | - | 1 | 0.33 |  |
